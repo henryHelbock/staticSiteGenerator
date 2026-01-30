@@ -1,32 +1,22 @@
 from textnode import TextNode, TextType
 
-def split_nodes_delimiter(oldNodes, delimiter, textType):
-    newNodes = []
 
-    for node in oldNodes:
-        # Pass through non-TEXT nodes unchanged
-        if node.text_type != TextType.TEXT:
-            newNodes.append(node)
+def split_nodes_delimiter(old_nodes, delimiter, text_type):
+    new_nodes = []
+    for old_node in old_nodes:
+        if old_node.text_type != TextType.TEXT:
+            new_nodes.append(old_node)
             continue
-
-        parts = node.text.split(delimiter)
-
-        # Unmatched delimiter check
-        if (len(parts) - 1) % 2 != 0:
-            raise Exception("missing matching delimiter")
-
-        # Determine starting type
-        current_type = textType if parts[0] == "" else TextType.TEXT
-
-        for part in parts:
-            if part == "":
+        split_nodes = []
+        sections = old_node.text.split(delimiter)
+        if len(sections) % 2 == 0:
+            raise ValueError("invalid markdown, formatted section not closed")
+        for i in range(len(sections)):
+            if sections[i] == "":
                 continue
-
-            newNodes.append(TextNode(part, current_type))
-
-            # Alternate type after each real segment
-            current_type = (
-                textType if current_type == TextType.TEXT else TextType.TEXT
-            )
-
-    return newNodes
+            if i % 2 == 0:
+                split_nodes.append(TextNode(sections[i], TextType.TEXT))
+            else:
+                split_nodes.append(TextNode(sections[i], text_type))
+        new_nodes.extend(split_nodes)
+    return new_nodes
