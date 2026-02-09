@@ -1,6 +1,6 @@
 import re
 from enum import Enum
-from htmlnode import HtmlNode
+from htmlnode import HtmlNode, ParentNode
 
 class BlockType(Enum):
     PARAGRAPH = "paragraph"
@@ -68,7 +68,7 @@ def markdown_to_html_node(markdown):
             block_nodes.append(code_to_html_node(block))
         elif blockType == BlockType.HEADING:
             block_nodes.append(heading_to_html_node(block))
-    return HtmlNode("div", None, block_nodes)
+    return ParentNode("div", block_nodes)
 
 
 def text_to_children(text):
@@ -88,7 +88,7 @@ def heading_to_html_node(block):
             break
     text = block[level + 1:]  
     children = text_to_children(text)
-    return HtmlNode(f"h{level}", None, children)
+    return ParentNode(f"h{level}", children)
 
 def quote_to_html_node(block):
     lines = block.split("\n")
@@ -100,7 +100,7 @@ def quote_to_html_node(block):
             stripped_lines.append(line[1:]) 
     text = "\n".join(stripped_lines)
     children = text_to_children(text)
-    return HtmlNode("blockquote", None, children)
+    return ParentNode("blockquote", children)
 
 def unordered_list_to_html_node(block):
     lines = block.split("\n")
@@ -108,8 +108,8 @@ def unordered_list_to_html_node(block):
     for line in lines:
         text = line[2:]  
         children = text_to_children(text)
-        li_nodes.append(HtmlNode("li", None, children))
-    return HtmlNode("ul", None, li_nodes)
+        li_nodes.append(ParentNode("li", children))
+    return ParentNode("ul", li_nodes)
 
 def ordered_list_to_html_node(block):
     lines = block.split("\n")
@@ -118,19 +118,31 @@ def ordered_list_to_html_node(block):
         prefix = f"{i + 1}. "
         text = line[len(prefix):]
         children = text_to_children(text)
-        li_nodes.append(HtmlNode("li", None, children))
-    return HtmlNode("ol", None, li_nodes)
+        li_nodes.append(ParentNode("li", children))
+    return ParentNode("ol", li_nodes)
 
 def code_to_html_node(block):
     text = block[4:-3]  
     from textnode import TextNode, TextType, text_node_to_html_node
     code_node = text_node_to_html_node(TextNode(text, TextType.TEXT))
-    code_wrapper = HtmlNode("code", None, [code_node])
-    return HtmlNode("pre", None, [code_wrapper])
+    code_wrapper = ParentNode("code", [code_node])
+    return ParentNode("pre", [code_wrapper])
 
 def paragraph_to_html_node(block):
     children = text_to_children(block)
-    return HtmlNode("p", None, children)
+    return ParentNode("p", children)
+
+
+def extract_title(markdown):
+    newMarkdown = markdown.split("\n")
+
+    for string in newMarkdown:
+        if string.startswith("# "):
+            stripped = string.strip("#")
+            stripped = stripped.strip()
+            return stripped
+    
+    raise Exception("No h1 header found")
 
 
 

@@ -1,5 +1,5 @@
 import unittest
-from markdown import extract_markdown_images, extract_markdown_links, markdown_to_blocks, block_to_block_type, BlockType
+from markdown import extract_markdown_images, extract_markdown_links, markdown_to_blocks, block_to_block_type, BlockType, extract_title
 
 
 class TestMarkdownExtraction(unittest.TestCase):
@@ -30,6 +30,12 @@ class TestMarkdownExtraction(unittest.TestCase):
                 "- This is a list\n- with items",
             ],
         )
+    
+    def test_extract_title(self):
+        block = extract_title("# Feeling this is a header")
+        self.assertEqual(block, "Feeling this is a header")
+
+
 
 
 
